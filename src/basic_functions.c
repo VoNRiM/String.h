@@ -11,20 +11,16 @@ s21_size_t s21_strlen(const char *str) {
   return len;
 }
 // 1
-void *s21_memchr(const void *str, int c, s21_size_t n) {
-  const unsigned char *p = (unsigned char *)str;
-  void *result = 0;
-  for (s21_size_t i = 0; i < n; i++) {
-    if (p[i] == (unsigned char)c) {
-      result = (void *)(p + i);
-      break;
+void *s21_memchr(const void *str, int c, s21_size_t n){
+    const unsigned char *p = ( unsigned char *)str;
+    unsigned char uns_char = (unsigned char) c; //преобразовавыем заранее, чтобы не делать это в цикле
+    void *result = S21_NULL;
+    for (s21_size_t i = 0; i < n && result == S21_NULL; i++) {
+        if (p[i] == uns_char) {
+            result = (void *)(p + i);
+        }
     }
-  }
-  if (result == 0) {
-    return NULL;
-  } else {
-    return result;
-  }
+    return result; //только один выход
 }
 // 2
 int s21_memcmp(const void *s1, const void *s2, s21_size_t n) {
