@@ -253,7 +253,7 @@ static const char *s21_sys_errlist[] __attribute__((used)) = {
 #else
 #define S21_SYS_NERR 1
 static const char *s21_sys_errlist[] __attribute__((used)) = {
-    [0] = "Unknown error" // Для всех errnum
+    [0] = "Unknown error"  // Для всех errnum
 };
 #endif
 

@@ -3,10 +3,25 @@ CFLAGS = -Wall -Wextra -Werror -std=c11
 GCOV_FLAGS = -fprofile-arcs -ftest-coverage
 LIBS = -lcheck -lsubunit -lm -lpthread
 
-# Файлы исходного кода
-SRC_FILES = basic_functions.c
+# Все исходные файлы
+SRC_FILES = basic_functions.c \
+            special_processing_functions.c \
+            s21_sscanf.c \
+            s21_sscanf_dispatcher.c \
+            s21_sscanf_parser.c \
+            s21_sscanf_processor.c \
+            s21_sscanf_readers.c \
+            s21_sscanf_utils.c \
+            format_functions.c
+
 OBJ_FILES = $(SRC_FILES:.c=.o)
+
+# Тестовый файл
 TEST_SRC = test_s21_string.c
+TEST_OBJ = $(TEST_SRC:.c=.o)
+
+# Имя исполняемого теста
+TEST_EXEC = test_app
 
 # Основные цели
 all: s21_string.a test
@@ -17,13 +32,13 @@ s21_string.a: $(OBJ_FILES)
 	ranlib s21_string.a
 
 # Правило для компиляции .c файлов в .o файлы
-%.o: %.c
+%.o: %.c s21_string.h errors.h s21_sscanf.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # Тестирование
-test: s21_string.a
-	$(CC) $(CFLAGS) $(TEST_SRC) s21_string.a -o test_app $(LIBS)
-	./test_app
+test: s21_string.a $(TEST_OBJ)
+	$(CC) $(CFLAGS) $(TEST_OBJ) s21_string.a -o $(TEST_EXEC) $(LIBS)
+	./$(TEST_EXEC)
 
 # Отчет покрытия
 gcov_report: clean
@@ -34,7 +49,7 @@ gcov_report: clean
 
 # Очистка
 clean:
-	rm -f *.a test_app gcov_app *.gcda *.gcno coverage.info *.o
+	rm -f *.a $(TEST_EXEC) gcov_app *.gcda *.gcno coverage.info *.o
 	rm -rf report
 
 # Стилевая правка 
@@ -45,4 +60,4 @@ clang:
 cppcheck:
 	cppcheck --enable=all --suppress=missingIncludeSystem *.c 
 
-.PHONY: all test gcov_report clean clang cppcheck 
+.PHONY: all test gcov_report clean clang cppcheck

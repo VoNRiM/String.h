@@ -2,3 +2,4 @@ test_app
 gcov*
 report/
 coverage.info
+.clang-format

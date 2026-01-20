@@ -1,8 +1,8 @@
 #include "errors.h"
 #include "s21_string.h"
 
-s21_size_t s21_strlen(const char *str) {
-  s21_size_t len = 0;
+s21_size s21_strlen(const char *str) {
+  s21_size len = 0;
   if (str) {
     while (str[len] != '\0') {
       len++;
@@ -11,23 +11,23 @@ s21_size_t s21_strlen(const char *str) {
   return len;
 }
 // 1
-void *s21_memchr(const void *str, int c, s21_size_t n){
-    const unsigned char *p = ( unsigned char *)str;
-    unsigned char uns_char = (unsigned char) c; //преобразовавыем заранее, чтобы не делать это в цикле
-    void *result = S21_NULL;
-    for (s21_size_t i = 0; i < n && result == S21_NULL; i++) {
-        if (p[i] == uns_char) {
-            result = (void *)(p + i);
-        }
+void *s21_memchr(const void *str, int c, s21_size n) {
+  const unsigned char *p = (unsigned char *)str;
+  unsigned char uns_char = (unsigned char)c;
+  void *result = S21_NULL;
+  for (s21_size i = 0; i < n && result == S21_NULL; i++) {
+    if (p[i] == uns_char) {
+      result = (void *)(p + i);
     }
-    return result; //только один выход
+  }
+  return result;
 }
 // 2
-int s21_memcmp(const void *s1, const void *s2, s21_size_t n) {
+int s21_memcmp(const void *s1, const void *s2, s21_size n) {
   const unsigned char *p1 = s1;
   const unsigned char *p2 = s2;
   int result = 0;
-  s21_size_t i = 0;
+  s21_size i = 0;
 
   while (i < n && result == 0) {
     if (p1[i] != p2[i]) {
@@ -39,18 +39,19 @@ int s21_memcmp(const void *s1, const void *s2, s21_size_t n) {
   return result;
 }
 // 5
-char *s21_strncat(char *dest, const char *src, s21_size_t n) {
+char *s21_strncat(char *dest, const char *src, s21_size n) {
   const char *un_src = src;
   char *un_dest = dest;
   while (*un_dest != '\0') {
     un_dest++;
   }
-  s21_size_t j;
-  for (j = 0; j < n; j++) {
+  s21_size j;
+  int stop = 0;
+  for (j = 0; j < n && !stop; j++) {
     if (un_src[j] != '\0') {
       un_dest[j] = un_src[j];
     } else {
-      break;
+      stop = 1;
     }
   }
   un_dest[j] = '\0';
@@ -78,17 +79,18 @@ char *s21_strchr(const char *str, int c) {
   return result;
 }
 // 9
-s21_size_t s21_strcspn(const char *str1, const char *str2) {
+s21_size s21_strcspn(const char *str1, const char *str2) {
   int should_break = 0;
   const char *un_str1 = str1;
   const char *un_str2 = str2;
-  s21_size_t count = 0;
+  s21_size count = 0;
   while (un_str1[count] != '\0' && should_break == 0) {
-    s21_size_t n = 0;
-    while (un_str2[n] != '\0') {
+    s21_size n = 0;
+    int stop = 0;
+    while (un_str2[n] != '\0' && !stop) {
       if (un_str1[count] == un_str2[n]) {
         should_break = 1;
-        break;
+        stop = 1;
       }
       n++;
     }
@@ -104,31 +106,31 @@ char *s21_strerror(int errnum) {
   static char buffer[50];
   char *result = S21_NULL;
   int is_known_error = 0;
-  if (errnum >= 0 && errnum < S21_SYS_NERR) { // Проверяем известные ошибки
+  if (errnum >= 0 && errnum < S21_SYS_NERR) {  // Проверяем известные ошибки
     result = (char *)s21_sys_errlist[errnum];
     is_known_error = 1;
   }
-  if (!is_known_error) { // Если неизвестная ошибка - формируем сообщение
+  if (!is_known_error) {  // Если неизвестная ошибка - формируем сообщение
     char *p = buffer;
-    const char *base_msg = "Unknown error "; // Копируем базовое сообщение
+    const char *base_msg = "Unknown error ";  // Копируем базовое сообщение
     while (*base_msg) {
       *p++ = *base_msg++;
     }
-    int num = errnum; // Обрабатываем номер ошибки
+    int num = errnum;  // Обрабатываем номер ошибки
     if (num < 0) {
       *p++ = '-';
       num = -num;
     }
 
     // Конвертируем число в строку
-    char digits[20]; // Сохраняем цифры во временный буфер
+    char digits[20];  // Сохраняем цифры во временный буфер
     int digit_count = 0;
     while (num > 0) {
       digits[digit_count++] = '0' + (num % 10);
       num /= 10;
     }
     for (int i = digit_count - 1; i >= 0;
-         i--) { // Записываем цифры в правильном порядке
+         i--) {  // Записываем цифры в правильном порядке
       *p++ = digits[i];
     }
 
@@ -156,7 +158,7 @@ char *s21_strrchr(const char *str, int c) {
 // 14
 char *s21_strstr(const char *haystack, const char *needle) {
   char *result = S21_NULL;
-  s21_size_t needle_len = s21_strlen(needle);
+  s21_size needle_len = s21_strlen(needle);
 
   if (needle_len == 0) {
     result = (char *)haystack;
@@ -189,7 +191,7 @@ char *s21_strtok(char *str, const char *delim) {
   // пропуск разделителей которые стоят вначале например ",,,,,123" -> "123"
   int stop = 0;
   while (!stop && *str != '\0') {
-    if (strchr(delim, *str) != S21_NULL) {
+    if (s21_strchr(delim, *str) != S21_NULL) {
       str++;
     } else {
       stop = 1;
@@ -202,7 +204,7 @@ char *s21_strtok(char *str, const char *delim) {
     return_token = str;
     // сдвиг адреса str на количество далее-идущих символов среди которых НЕ
     // встречаются разделители, либо вплоть до конца строки - \0
-    str += strcspn(str, delim); // TODO заменить на s21 версию
+    str += s21_strcspn(str, delim);  // TODO заменить на s21 версию - done
 
     // если после сдвига мы не в конце строки - значит мы наткнулись на
     // разделитель, заменяем его на \0 завершая токен-подстроку
@@ -210,9 +212,9 @@ char *s21_strtok(char *str, const char *delim) {
       *str = '\0';
       // запоминаем начало нового токена - это конец старого + 1 символ.
       saved_token = str + 1;
-    } else { // если после сдвига мы уткнулись в конец материнской строки -
-             // дальше токенов не будет, предыдущий мы и так вернем, поэтому
-             // сбрасываем память
+    } else {  // если после сдвига мы уткнулись в конец материнской строки -
+              // дальше токенов не будет, предыдущий мы и так вернем, поэтому
+              // сбрасываем память
       saved_token = S21_NULL;
     }
   } else {
@@ -223,7 +225,7 @@ char *s21_strtok(char *str, const char *delim) {
 }
 
 // venonata 3
-void *s21_memcpy(void *destination, const void *source, size_t amount) {
+void *s21_memcpy(void *destination, const void *source, s21_size amount) {
   // сразу возвращаем dest при нулевом количестве
   if (amount != 0) {
     // приводим к типу указатели, также как делает оригинальная функция, теперь
@@ -244,7 +246,7 @@ void *s21_memcpy(void *destination, const void *source, size_t amount) {
 }
 
 // venonata 7
-int s21_strncmp(const char *str1, const char *str2, size_t amount) {
+int s21_strncmp(const char *str1, const char *str2, s21_size amount) {
   int res = 0;
   if (amount != 0) {
     const unsigned char *s1 = (const unsigned char *)str1;
@@ -257,7 +259,7 @@ int s21_strncmp(const char *str1, const char *str2, size_t amount) {
         res = (int)(*s1) - (int)(*s2);
         amount = 0;
 
-      } else if (*s1 == '\0') { // значит и во второй строке тоже нуль
+      } else if (*s1 == '\0') {  // значит и во второй строке тоже нуль
         stop = 1;
         amount = 0;
       }
@@ -271,9 +273,9 @@ int s21_strncmp(const char *str1, const char *str2, size_t amount) {
 
 // 4 - memset: Заполняет n байтов памяти указанным символом c. Возвращает
 // указатель на блок памяти.
-void *s21_memset(void *str, int c, s21_size_t n) {
+void *s21_memset(void *str, int c, s21_size n) {
   if (str != S21_NULL) {
-    for (s21_size_t i = 0; i < n; i++) {
+    for (s21_size i = 0; i < n; i++) {
       ((char *)str)[i] = c;
     }
   }
@@ -282,17 +284,17 @@ void *s21_memset(void *str, int c, s21_size_t n) {
 
 // 8 - strncpy: Копирует n символов строки из src в dest. Возврщает указатель на
 // строку dest.
-char *s21_strncpy(char *dest, const char *src, s21_size_t n) {
-  int flag = 0;
+char *s21_strncpy(char *dest, const char *src, s21_size n) {
+  int error_flag = 0;
   char *dest_pointer = dest;
 
   if (dest == S21_NULL || src == S21_NULL) {
-    flag = 1;
+    error_flag = 1;
     dest_pointer = S21_NULL;
   }
 
-  if (!flag) {
-    s21_size_t counter = 0;
+  if (!error_flag) {
+    s21_size counter = 0;
 
     while (counter < n && src[counter] != '\0') {
       dest[counter] = src[counter];
@@ -310,27 +312,25 @@ char *s21_strncpy(char *dest, const char *src, s21_size_t n) {
 // 12 - strpbrk: Выполняет поиск первого вхождения в str1 любого из символов
 // str2. Возвращает указатель на первое вхождение в str1 найденного символа.
 
-char *s21_strpbrk(const char *look_in, const char *look_for) {
-  int flag = 0;
+char *s21_strpbrk(const char *str1, const char *str2) {
   char *res_str = S21_NULL;
 
-  if (look_in == S21_NULL || look_for == S21_NULL)
-    flag = 1;
+  if (str1 != S21_NULL || str2 != S21_NULL) {
+    s21_size len_str = s21_strlen(str2);
 
-  if (!flag) {
-    s21_size_t i = 0;
-    int match_found = 0;
-
-    while (!match_found && look_in[i] != '\0') {
-      for (s21_size_t j = 0; j <= s21_strlen(look_for) - 1; j++) {
-        if (look_in[i] == look_for[j]) {
-          res_str = (char *)&look_in[i];
-          match_found = 1;
-          break;
+    if (len_str > 0) {
+      int match_found = 0;
+      for (s21_size i = 0;
+           str1[i] != '\0' && res_str == S21_NULL && !match_found; i++) {
+        for (s21_size j = 0; j < len_str && !match_found; j++) {
+          if (str1[i] == str2[j]) {
+            res_str = (char *)&str1[i];
+            match_found = 1;
+          }
         }
       }
-      i++;
     }
   }
+
   return res_str;
 }
